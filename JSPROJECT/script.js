@@ -227,65 +227,143 @@ window.addToCart = addToCart;
 window.openCart = openCart;
 window.closeModal = closeModal;
 
+
+
+
+
+
+
+
 // --------------------------
-// LOGIN MODAL
+// LOGIN MODAL + AUTH SYSTEM
 // --------------------------
+
 const loginBack = document.getElementById('login-back');
 const loginForm = document.getElementById('login-form');
 const guestBtn = document.getElementById('guest-login');
 const closeLoginBtn = document.getElementById('close-login');
 const loginBtn = document.getElementById('login-btn');
 
+// check stored user
+function getUser() {
+  return JSON.parse(localStorage.getItem('delish_user'));
+}
+
+// update button UI
+function updateAuthButton() {
+  const user = getUser();
+  if (user) {
+    loginBtn.textContent = "Logout";
+  } else {
+    loginBtn.textContent = "Login";
+  }
+}
+
+// open modal
 function openLogin() {
   loginBack.style.display = 'flex';
 }
 
+// close modal
 function closeLogin() {
   loginBack.style.display = 'none';
 }
 
-// Open login modal
-loginBtn.addEventListener('click', openLogin);
+// toggle login/logout
+loginBtn.addEventListener('click', () => {
+  const user = getUser();
 
-// Close modal
+  // if logged in → logout
+  if (user) {
+    localStorage.removeItem('delish_user');
+    updateAuthButton();
+    alert("Logged out successfully!");
+  } 
+  // else open login modal
+  else {
+    openLogin();
+  }
+});
+
+// close modal button
 closeLoginBtn.addEventListener('click', closeLogin);
+
+// click outside modal closes it
 loginBack.addEventListener('click', e => {
   if (e.target.id === 'login-back') closeLogin();
 });
 
-// Handle guest login
+// guest login
 guestBtn.addEventListener('click', () => {
-  localStorage.setItem('delish_user', JSON.stringify({type: 'guest'}));
+  localStorage.setItem('delish_user', JSON.stringify({ type: 'guest' }));
   closeLogin();
+  updateAuthButton();
   alert("Logged in as guest!");
 });
 
-// Handle registered login (dummy example)
+// registered login
 loginForm.addEventListener('submit', e => {
   e.preventDefault();
+
   const email = document.getElementById('login-email').value;
   const password = document.getElementById('login-password').value;
 
-  if(email === "user@example.com" && password === "1234"){
-    localStorage.setItem('delish_user', JSON.stringify({type:'registered', email}));
+  if (email === "user@example.com" && password === "1234") {
+    localStorage.setItem(
+      'delish_user',
+      JSON.stringify({ type: 'registered', email })
+    );
+
     closeLogin();
+    updateAuthButton();
     alert("Logged in successfully!");
   } else {
     alert("Invalid credentials");
   }
 });
-document.getElementById('reserve-form').addEventListener('submit', e=>{
+
+
+// --------------------------
+// RESERVATION FORM
+// --------------------------
+
+document.getElementById('reserve-form').addEventListener('submit', e => {
   e.preventDefault();
-  const user = JSON.parse(localStorage.getItem('delish_user'));
-  if(!user){
+
+  const user = getUser();
+
+  if (!user) {
     openLogin();
   } else {
     alert("Table booked!");
-    // Your existing reservation code here
-  }
+    // Your existing reservation code here
+  }
 });
 
-let procedbtn=document.getElementById("proced-to-pay")
-procedbtn.addEventListener("click",function(){
-  alert("payment done successfully you order will receive soon")
-})
+
+// --------------------------
+// PAYMENT BUTTON
+// --------------------------
+
+let procedbtn = document.getElementById("proced-to-pay");
+
+if (procedbtn) {
+  procedbtn.addEventListener("click", function () {
+    const user = getUser();
+
+    if (!user) {
+      alert("Please login first");
+      openLogin();
+      return;
+    }
+
+    alert("Payment done successfully, your order will be received soon");
+  });
+}
+
+
+// --------------------------
+// INIT ON PAGE LOAD
+// --------------------------
+
+updateAuthButton();
